@@ -152,6 +152,33 @@ service cloud.firestore {
         request.resource.data.senderId == request.auth.uid;
     }
 
+    match /scheduledTrainings/{scheduledId} {
+      allow read: if request.auth != null;
+      allow create, update, delete: if request.auth != null &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'coach' ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+    }
+
+    match /trainingDiaryEntries/{entryId} {
+      allow read: if request.auth != null &&
+        (resource.data.athleteId == request.auth.uid ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'coach' ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+      allow create: if request.auth != null &&
+        request.resource.data.athleteId == request.auth.uid;
+      allow update, delete: if request.auth != null &&
+        resource.data.athleteId == request.auth.uid;
+    }
+
+    match /competitions/{competitionId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null &&
+        (resource.data.athleteId == request.auth.uid ||
+         resource.data.coachId == request.auth.uid ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+    }
+
     match /metadata/{document} {
       allow read, write: if request.auth != null;
     }

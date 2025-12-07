@@ -5,19 +5,23 @@ Aplikacja webowa do zarządzania treningami dla zawodników, trenerów i adminis
 ## Funkcjonalności
 
 ### Panel Zawodnika
-- Przeglądanie treningów przypisanych przez trenera
+- **Kalendarz tygodniowy** - widok zaplanowanych treningów na cały tydzień
+- **Treningi** - przeglądanie, szczegóły, feedbacki
+- **Dziennik treningowy** - zapisywanie wykonanych treningów, samopoczucie, sen, notatki
+- **Statystyki** - wykresy postępów, wykonalność, średnie samopoczucie
+- **Zawody i starty** - planowanie zawodów, cele czasowe, historia wyników
+- **Wiadomości** - czat w czasie rzeczywistym z trenerem
 - Szczegółowy widok treningu z ćwiczeniami i multimedia
-- Dodawanie feedbacku do treningów
 - Przeglądanie odpowiedzi trenera na feedback
-- Wiadomości w czasie rzeczywistym z trenerem
 
 ### Panel Trenera
-- Tworzenie i edycja treningów
-- Dodawanie strukturyzowanych planów treningowych (serie, dystans, tempo, odpoczynek)
+- **Kalendarz tygodniowy** - planowanie treningów dla zawodników
+- **Treningi** - tworzenie i edycja strukturyzowanych planów treningowych
+- **Feedback** - przeglądanie i odpowiadanie na opinie zawodników
+- **Zawodnicy** - lista przypisanych zawodników
+- **Wiadomości** - czat z zawodnikami (wybór z listy)
+- Dodawanie planów treningowych (serie, dystans, tempo, odpoczynek) - dostosowane do pływania
 - Przesyłanie multimediów (zdjęcia, filmy instruktażowe)
-- Przeglądanie listy przypisanych zawodników
-- Odpowiadanie na feedback zawodników
-- Wiadomości w czasie rzeczywistym z zawodnikami
 
 ### Panel Administratora
 - Zarządzanie użytkownikami (dodawanie, usuwanie, zmiana ról)
@@ -122,6 +126,33 @@ service cloud.firestore {
          resource.data.receiverId == request.auth.uid);
       allow create: if request.auth != null &&
         request.resource.data.senderId == request.auth.uid;
+    }
+
+    match /scheduledTrainings/{scheduledId} {
+      allow read: if request.auth != null;
+      allow create, update, delete: if request.auth != null &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'coach' ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+    }
+
+    match /trainingDiaryEntries/{entryId} {
+      allow read: if request.auth != null &&
+        (resource.data.athleteId == request.auth.uid ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'coach' ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+      allow create: if request.auth != null &&
+        request.resource.data.athleteId == request.auth.uid;
+      allow update, delete: if request.auth != null &&
+        resource.data.athleteId == request.auth.uid;
+    }
+
+    match /competitions/{competitionId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null &&
+        (resource.data.athleteId == request.auth.uid ||
+         resource.data.coachId == request.auth.uid ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
     }
 
     match /metadata/{document} {
@@ -257,6 +288,51 @@ npm run preview
   text: string,
   createdAt: string,
   read: boolean
+}
+```
+
+### Kolekcja `scheduledTrainings`
+```javascript
+{
+  trainingId: string,
+  coachId: string,
+  athleteId: string | null,
+  scheduledDate: string,  // ISO timestamp
+  completed: boolean,
+  createdAt: string
+}
+```
+
+### Kolekcja `trainingDiaryEntries`
+```javascript
+{
+  athleteId: string,
+  scheduledTrainingId: string,
+  trainingId: string,
+  feeling: number,  // 1-5
+  notes: string,
+  sleepHours: number | null,
+  completed: boolean,
+  createdAt: string
+}
+```
+
+### Kolekcja `competitions`
+```javascript
+{
+  name: string,
+  date: string,  // YYYY-MM-DD
+  location: string,
+  events: [{
+    event: string,       // np. "100m kraul"
+    targetTime: string,  // cel czasowy
+    actualTime: string,  // rzeczywisty wynik
+    notes: string
+  }],
+  athleteId: string | null,
+  coachId: string | null,
+  createdAt: string,
+  updatedAt: string
 }
 ```
 

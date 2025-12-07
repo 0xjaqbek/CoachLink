@@ -5,6 +5,10 @@ import { useAuth } from '../contexts/AuthContext'
 import Navigation from '../components/Navigation'
 import TrainingCard from '../components/TrainingCard'
 import Messages from '../components/Messages'
+import WeeklyCalendar from '../components/WeeklyCalendar'
+import TrainingDiary from '../components/TrainingDiary'
+import Statistics from '../components/Statistics'
+import CompetitionsManager from '../components/CompetitionsManager'
 import '../styles/Dashboard.css'
 
 const AthleteDashboard = () => {
@@ -114,10 +118,34 @@ const AthleteDashboard = () => {
 
         <div className="tabs">
           <button
+            className={`tab ${activeTab === 'calendar' ? 'active' : ''}`}
+            onClick={() => setActiveTab('calendar')}
+          >
+            Kalendarz
+          </button>
+          <button
             className={`tab ${activeTab === 'trainings' ? 'active' : ''}`}
             onClick={() => setActiveTab('trainings')}
           >
             Treningi ({trainings.length})
+          </button>
+          <button
+            className={`tab ${activeTab === 'diary' ? 'active' : ''}`}
+            onClick={() => setActiveTab('diary')}
+          >
+            Dziennik
+          </button>
+          <button
+            className={`tab ${activeTab === 'statistics' ? 'active' : ''}`}
+            onClick={() => setActiveTab('statistics')}
+          >
+            Statystyki
+          </button>
+          <button
+            className={`tab ${activeTab === 'competitions' ? 'active' : ''}`}
+            onClick={() => setActiveTab('competitions')}
+          >
+            Zawody
           </button>
           <button
             className={`tab ${activeTab === 'messages' ? 'active' : ''}`}
@@ -154,6 +182,21 @@ const AthleteDashboard = () => {
             )}
           </>
         )}
+
+        {activeTab === 'calendar' && (
+          <WeeklyCalendar
+            role="athlete"
+            trainings={trainings}
+            coachId={coachId}
+            onRefresh={loadTrainings}
+          />
+        )}
+
+        {activeTab === 'diary' && <TrainingDiary />}
+
+        {activeTab === 'statistics' && <Statistics />}
+
+        {activeTab === 'competitions' && <CompetitionsManager role="athlete" />}
 
         {activeTab === 'messages' && (
           <Messages role="athlete" coachId={coachId} />

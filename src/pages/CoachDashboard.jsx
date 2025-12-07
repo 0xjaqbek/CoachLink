@@ -7,6 +7,7 @@ import TrainingCard from '../components/TrainingCard'
 import TrainingForm from '../components/TrainingForm'
 import FeedbackList from '../components/FeedbackList'
 import Messages from '../components/Messages'
+import WeeklyCalendar from '../components/WeeklyCalendar'
 import '../styles/Dashboard.css'
 
 const CoachDashboard = () => {
@@ -158,6 +159,12 @@ const CoachDashboard = () => {
 
         <div className="tabs">
           <button
+            className={`tab ${activeTab === 'calendar' ? 'active' : ''}`}
+            onClick={() => setActiveTab('calendar')}
+          >
+            Kalendarz
+          </button>
+          <button
             className={`tab ${activeTab === 'trainings' ? 'active' : ''}`}
             onClick={() => setActiveTab('trainings')}
           >
@@ -265,6 +272,14 @@ const CoachDashboard = () => {
               </div>
             )}
           </div>
+        )}
+
+        {activeTab === 'calendar' && (
+          <WeeklyCalendar
+            role="coach"
+            trainings={trainings}
+            onRefresh={loadData}
+          />
         )}
 
         {activeTab === 'messages' && (
