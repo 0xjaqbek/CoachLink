@@ -18,12 +18,12 @@ Zmienne środowiskowe z pliku `.env` nie zostały wbudowane w build produkcyjny 
 Sprawdź czy plik `.env` w głównym folderze projektu zawiera:
 
 ```env
-VITE_FIREBASE_API_KEY=AIzaSyAPAUzl21LdkDKS5jvjw8Ds2XkFKot7O1s
-VITE_FIREBASE_AUTH_DOMAIN=coachlink26.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=coachlink26
-VITE_FIREBASE_STORAGE_BUCKET=coachlink26.firebasestorage.app
-VITE_FIREBASE_MESSAGING_SENDER_ID=106710325924
-VITE_FIREBASE_APP_ID=1:106710325924:web:694ff9d045f9b13057e431
+VITE_FIREBASE_API_KEY=
+VITE_FIREBASE_AUTH_DOMAIN=
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_STORAGE_BUCKET=
+VITE_FIREBASE_MESSAGING_SENDER_ID=
+VITE_FIREBASE_APP_ID=
 ```
 
 ✅ **Plik .env jest poprawny i znajduje się w głównym folderze projektu**
