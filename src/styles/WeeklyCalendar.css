@@ -47,6 +47,25 @@
   font-style: italic;
 }
 
+.calendar-info-box {
+  background: #e8f0fe;
+  border-left: 4px solid #4285f4;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.calendar-info-box p {
+  margin: 5px 0;
+  color: #202124;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.calendar-info-box strong {
+  color: #1967d2;
+}
+
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);

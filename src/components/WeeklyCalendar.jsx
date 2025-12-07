@@ -4,7 +4,7 @@ import { db } from '../config/firebase'
 import { useAuth } from '../contexts/AuthContext'
 import '../styles/WeeklyCalendar.css'
 
-const WeeklyCalendar = ({ role, trainings, coachId, onRefresh }) => {
+const WeeklyCalendar = ({ role, trainings, coachId, onRefresh, athleteId }) => {
   const { currentUser } = useAuth()
   const [currentWeek, setCurrentWeek] = useState(new Date())
   const [scheduledTrainings, setScheduledTrainings] = useState([])
@@ -14,7 +14,7 @@ const WeeklyCalendar = ({ role, trainings, coachId, onRefresh }) => {
 
   useEffect(() => {
     loadScheduledTrainings()
-  }, [currentWeek, currentUser])
+  }, [currentWeek, currentUser, athleteId])
 
   const loadScheduledTrainings = async () => {
     try {
@@ -22,9 +22,14 @@ const WeeklyCalendar = ({ role, trainings, coachId, onRefresh }) => {
       const weekStart = getWeekStart(currentWeek)
       const weekEnd = getWeekEnd(currentWeek)
 
+      // If athleteId is provided (coach viewing specific athlete), filter by that athlete
+      // Otherwise, filter by coach (all athletes) or current athlete
+      const filterField = athleteId ? 'athleteId' : (role === 'coach' ? 'coachId' : 'athleteId')
+      const filterValue = athleteId || currentUser.uid
+
       const scheduledQuery = query(
         collection(db, 'scheduledTrainings'),
-        where(role === 'coach' ? 'coachId' : 'athleteId', '==', role === 'coach' ? currentUser.uid : currentUser.uid),
+        where(filterField, '==', filterValue),
         where('scheduledDate', '>=', weekStart.toISOString()),
         where('scheduledDate', '<=', weekEnd.toISOString())
       )
@@ -74,6 +79,12 @@ const WeeklyCalendar = ({ role, trainings, coachId, onRefresh }) => {
   const handleScheduleTraining = async (day) => {
     if (role !== 'coach' || !selectedTraining) return
 
+    // If athleteId is not provided and we're in the general calendar view, alert the user
+    if (!athleteId) {
+      alert('Aby zaplanować trening dla zawodnika:\n1. Przejdź do zakładki "Zawodnicy"\n2. Kliknij w zawodnika\n3. W jego kalendarzu zaplanuj trening')
+      return
+    }
+
     try {
       const scheduledDate = new Date(day)
       scheduledDate.setHours(12, 0, 0, 0)
@@ -81,7 +92,7 @@ const WeeklyCalendar = ({ role, trainings, coachId, onRefresh }) => {
       await addDoc(collection(db, 'scheduledTrainings'), {
         trainingId: selectedTraining,
         coachId: currentUser.uid,
-        athleteId: null, // Będzie ustawione przez admina/trenera podczas przypisywania
+        athleteId: athleteId, // Now uses the provided athleteId
         scheduledDate: scheduledDate.toISOString(),
         completed: false,
         createdAt: new Date().toISOString()
@@ -90,7 +101,7 @@ const WeeklyCalendar = ({ role, trainings, coachId, onRefresh }) => {
       loadScheduledTrainings()
       onRefresh?.()
       setSelectedTraining(null)
-      alert('Trening dodany do kalendarza')
+      alert('Trening dodany do kalendarza zawodnika')
     } catch (error) {
       console.error('Error scheduling training:', error)
       alert('Błąd podczas dodawania treningu do kalendarza')
@@ -165,7 +176,14 @@ const WeeklyCalendar = ({ role, trainings, coachId, onRefresh }) => {
         </button>
       </div>
 
-      {role === 'coach' && trainings && trainings.length > 0 && (
+      {role === 'coach' && trainings && trainings.length > 0 && !athleteId && (
+        <div className="calendar-info-box">
+          <p><strong>ℹ️ Informacja:</strong> To jest widok zbiorczy wszystkich treningów.</p>
+          <p>Aby zaplanować trening dla zawodnika, przejdź do zakładki "Zawodnicy" i kliknij w wybranego zawodnika.</p>
+        </div>
+      )}
+
+      {role === 'coach' && trainings && trainings.length > 0 && athleteId && (
         <div className="training-selector">
           <label>Wybierz trening do dodania:</label>
           <select
@@ -176,7 +194,7 @@ const WeeklyCalendar = ({ role, trainings, coachId, onRefresh }) => {
             <option value="">-- Wybierz trening --</option>
             {trainings.map(training => (
               <option key={training.id} value={training.id}>
-                {training.title}
+                {training.title} {training.isTemplate ? '(Szablon)' : ''}
               </option>
             ))}
           </select>

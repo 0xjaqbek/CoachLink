@@ -14,10 +14,34 @@
   align-items: center;
 }
 
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
 .nav-title {
   margin: 0;
   font-size: 24px;
   color: #202124;
+}
+
+.nav-link {
+  text-decoration: none;
+  color: #5f6368;
+  font-size: 15px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nav-link:hover {
+  background: #f8f9fa;
+  color: #4285f4;
 }
 
 .nav-right {

@@ -15,13 +15,22 @@ Aplikacja webowa do zarządzania treningami dla zawodników, trenerów i adminis
 - Przeglądanie odpowiedzi trenera na feedback
 
 ### Panel Trenera
-- **Kalendarz tygodniowy** - planowanie treningów dla zawodników
-- **Treningi** - tworzenie i edycja strukturyzowanych planów treningowych
-- **Feedback** - przeglądanie i odpowiadanie na opinie zawodników
 - **Zawodnicy** - lista przypisanych zawodników
+  - Kliknij w zawodnika aby otworzyć jego szczegóły
+  - **Widok zawodnika** - kompleksowy widok danych wybranego zawodnika:
+    - Indywidualny kalendarz z możliwością planowania treningów
+    - Statystyki treningowe (wykonalność, samopoczucie, sen)
+    - Podgląd dziennika treningowego
+    - Lista zawodów i startów
+- **Kalendarz tygodniowy** - przegląd wszystkich zaplanowanych treningów
+- **Treningi** - tworzenie i edycja strukturyzowanych planów treningowych
+  - **Szablony treningów** - zapisywanie treningów jako szablonów do ponownego użycia
+  - **Kategorie** - wytrzymałość, technika, sprint, siła, regeneracja, mieszany
+  - Filtrowanie według typu i kategorii
+  - Dodawanie planów treningowych (serie, dystans, tempo, odpoczynek) - dostosowane do pływania
+  - Przesyłanie multimediów (zdjęcia, filmy instruktażowe)
+- **Feedback** - przeglądanie i odpowiadanie na opinie zawodników
 - **Wiadomości** - czat z zawodnikami (wybór z listy)
-- Dodawanie planów treningowych (serie, dystans, tempo, odpoczynek) - dostosowane do pływania
-- Przesyłanie multimediów (zdjęcia, filmy instruktażowe)
 
 ### Panel Administratora
 - Zarządzanie użytkownikami (dodawanie, usuwanie, zmiana ról)
@@ -129,16 +138,22 @@ service cloud.firestore {
     }
 
     match /scheduledTrainings/{scheduledId} {
-      allow read: if request.auth != null;
-      allow create, update, delete: if request.auth != null &&
-        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'coach' ||
+      allow read: if request.auth != null &&
+        (resource.data.athleteId == request.auth.uid ||
+         resource.data.coachId == request.auth.uid ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+      allow create: if request.auth != null &&
+        (request.resource.data.coachId == request.auth.uid ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+      allow update, delete: if request.auth != null &&
+        (resource.data.coachId == request.auth.uid ||
          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
     }
 
     match /trainingDiaryEntries/{entryId} {
       allow read: if request.auth != null &&
         (resource.data.athleteId == request.auth.uid ||
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'coach' ||
+         get(/databases/$(database)/documents/users/$(resource.data.athleteId)).data.coachId == request.auth.uid ||
          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
       allow create: if request.auth != null &&
         request.resource.data.athleteId == request.auth.uid;
@@ -147,7 +162,10 @@ service cloud.firestore {
     }
 
     match /competitions/{competitionId} {
-      allow read: if request.auth != null;
+      allow read: if request.auth != null &&
+        (resource.data.athleteId == request.auth.uid ||
+         get(/databases/$(database)/documents/users/$(resource.data.athleteId)).data.coachId == request.auth.uid ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
       allow create: if request.auth != null;
       allow update, delete: if request.auth != null &&
         (resource.data.athleteId == request.auth.uid ||
@@ -253,6 +271,8 @@ npm run preview
   coachName: string,
   duration: number,  // w minutach
   difficulty: 'easy' | 'medium' | 'hard',
+  category: 'endurance' | 'technique' | 'sprint' | 'strength' | 'recovery' | 'mixed',  // NOWE!
+  isTemplate: boolean,  // NOWE! - czy trening jest szablonem
   exercises: [{
     name: string,      // np. "Kraul - sprint"
     sets: string,      // np. "4x"

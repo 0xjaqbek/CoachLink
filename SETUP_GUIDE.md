@@ -153,16 +153,22 @@ service cloud.firestore {
     }
 
     match /scheduledTrainings/{scheduledId} {
-      allow read: if request.auth != null;
-      allow create, update, delete: if request.auth != null &&
-        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'coach' ||
+      allow read: if request.auth != null &&
+        (resource.data.athleteId == request.auth.uid ||
+         resource.data.coachId == request.auth.uid ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+      allow create: if request.auth != null &&
+        (request.resource.data.coachId == request.auth.uid ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+      allow update, delete: if request.auth != null &&
+        (resource.data.coachId == request.auth.uid ||
          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
     }
 
     match /trainingDiaryEntries/{entryId} {
       allow read: if request.auth != null &&
         (resource.data.athleteId == request.auth.uid ||
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'coach' ||
+         get(/databases/$(database)/documents/users/$(resource.data.athleteId)).data.coachId == request.auth.uid ||
          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
       allow create: if request.auth != null &&
         request.resource.data.athleteId == request.auth.uid;
@@ -171,7 +177,10 @@ service cloud.firestore {
     }
 
     match /competitions/{competitionId} {
-      allow read: if request.auth != null;
+      allow read: if request.auth != null &&
+        (resource.data.athleteId == request.auth.uid ||
+         get(/databases/$(database)/documents/users/$(resource.data.athleteId)).data.coachId == request.auth.uid ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
       allow create: if request.auth != null;
       allow update, delete: if request.auth != null &&
         (resource.data.athleteId == request.auth.uid ||

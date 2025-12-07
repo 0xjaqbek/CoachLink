@@ -22,14 +22,32 @@ const TrainingCard = ({ training, onDelete, onEdit, onAddFeedback, feedbacks = [
     hard: 'Trudny'
   }
 
+  const categoryLabels = {
+    endurance: 'Wytrzymałość',
+    technique: 'Technika',
+    sprint: 'Sprint',
+    strength: 'Siła',
+    recovery: 'Regeneracja',
+    mixed: 'Mieszany'
+  }
+
   return (
     <div className="training-card">
       <div className="training-card-header">
         <h3>{training.title}</h3>
-        <span className={`difficulty-badge ${training.difficulty}`}>
-          {difficultyLabels[training.difficulty] || training.difficulty}
-        </span>
+        <div className="badges-container">
+          {training.isTemplate && (
+            <span className="template-badge">Szablon</span>
+          )}
+          <span className={`difficulty-badge ${training.difficulty}`}>
+            {difficultyLabels[training.difficulty] || training.difficulty}
+          </span>
+        </div>
       </div>
+
+      {training.category && (
+        <p className="training-category">Kategoria: {categoryLabels[training.category] || training.category}</p>
+      )}
 
       {training.description && (
         <p className="training-description">{training.description}</p>

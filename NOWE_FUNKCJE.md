@@ -2,17 +2,21 @@
 
 ## 🎯 Dodane funkcje
 
-### 1. 📅 Kalendarz Tygodniowy
+### 1. 📅 Kalendarz Tygodniowy (Uaktualnione!)
 **Lokalizacja**: Panel Zawodnika i Trenera → zakładka "Kalendarz"
 
 **Dla trenera:**
+- **Widok indywidualny zawodnika:** Zakładka "Widok Zawodnika" → wybierz zawodnika → Kalendarz
+- Każdy zawodnik ma swój osobisty kalendarz treningów
+- Trener ustawia indywidualnie plany dla każdego zawodnika
 - Widok całego tygodnia (poniedziałek - niedziela)
-- Wybór treningu z listy i kliknięcie na dzień, aby go zaplanować
+- Wybór treningu z listy i kliknięcie na dzień, aby go zaplanować dla wybranego zawodnika
 - Usuwanie zaplanowanych treningów
 - Nawigacja między tygodniami
+- **Kalendarz (Wszyscy):** Widok zbiorczy wszystkich zaplanowanych treningów (tylko podgląd)
 
 **Dla zawodnika:**
-- Widok zaplanowanych treningów na cały tydzień
+- Widok własnych zaplanowanych treningów na cały tydzień
 - Oznaczenie dzisiejszego dnia
 - Podgląd szczegółów treningu
 
@@ -50,6 +54,39 @@
 - Zapisywanie rzeczywistych wyników
 - Historia startów (podzielona na nadchodzące i przeszłe)
 - Edycja i usuwanie zawodów
+
+### 5. 📋 Szablony Treningów (NOWE!)
+**Lokalizacja**: Panel Trenera → zakładka "Treningi"
+
+**Funkcje:**
+- Zapisywanie treningów jako szablonów do ponownego użycia
+- Kategorie treningów: Wytrzymałość, Technika, Sprint, Siła, Regeneracja, Mieszany
+- Filtrowanie treningów według typu (wszystkie/treningi/szablony)
+- Filtrowanie według kategorii
+- Wizualna oznaczenie szablonów i kategorii na kartach treningów
+- Szybkie tworzenie treningów z gotowych wzorców
+
+### 6. 👀 Widok Zawodnika dla Trenera (NOWE!)
+**Lokalizacja**: Panel Trenera → zakładka "Zawodnicy" → kliknij w zawodnika
+
+**Funkcje:**
+- Kliknij w kartę zawodnika z listy, aby otworzyć jego szczegóły
+- Przycisk "Powrót do listy zawodników" aby wrócić
+- **Kalendarz:** Indywidualny kalendarz wybranego zawodnika z możliwością planowania treningów
+- **Statystyki:**
+  - Liczba treningów (wszystkie/wykonane/opuszczone)
+  - Procent wykonalności
+  - Średnie samopoczucie
+  - Średni czas snu
+- **Dziennik:** Podgląd wpisów z dziennika zawodnika
+  - Data treningu
+  - Samopoczucie i sen
+  - Notatki zawodnika
+  - Status (wykonany/opuszczony)
+- **Zawody:** Lista zawodów zawodnika
+  - Nadchodzące i przeszłe zawody
+  - Konkurencje z celami i wynikami
+  - Notatki do startów
 
 ## 🗄️ Nowe kolekcje w Firestore
 
@@ -113,11 +150,33 @@ Firestore może automatycznie zasugerować potrzebne indeksy podczas pierwszego 
 
 ## 🚀 Jak używać
 
-### Kalendarz (Trener)
-1. Przejdź do zakładki "Kalendarz"
-2. Wybierz trening z listy rozwijanej
-3. Kliknij na dzień, w którym chcesz zaplanować trening
-4. Trening pojawi się w kalendarzu
+### Szablony Treningów (Trener) - NOWE!
+1. Przejdź do zakładki "Treningi"
+2. Kliknij "+ Dodaj Trening"
+3. Wypełnij formularz treningu
+4. Wybierz kategorię (wytrzymałość, technika, sprint, etc.)
+5. Zaznacz "Zapisz jako szablon"
+6. Kliknij "Utwórz trening"
+7. Szablon pojawi się na liście treningów z oznaczeniem "Szablon"
+8. Użyj filtrów, aby wyświetlić tylko szablony lub tylko zwykłe treningi
+
+### Widok Zawodnika (Trener) - NOWE!
+1. Przejdź do zakładki "Zawodnicy"
+2. **Kliknij w kartę zawodnika** z listy
+3. Otworzą się szczegóły zawodnika z zakładkami:
+   - **Kalendarz:** Planuj treningi dla tego zawodnika
+   - **Statystyki:** Zobacz postępy zawodnika
+   - **Dziennik:** Przeczytaj notatki i wpisy z treningów
+   - **Zawody:** Zobacz zaplanowane i przeszłe zawody
+4. Kliknij "← Powrót do listy zawodników" aby wrócić
+
+### Kalendarz Indywidualny (Trener)
+1. Przejdź do zakładki "Zawodnicy"
+2. **Kliknij w zawodnika** z listy
+3. Kliknij zakładkę "Kalendarz" (domyślnie otwarta)
+4. Wybierz trening z listy rozwijanej (w tym szablony!)
+5. Kliknij na dzień, aby zaplanować trening dla tego zawodnika
+6. Trening pojawi się w kalendarzu zawodnika
 
 ### Dziennik (Zawodnik)
 1. Wykonaj trening
@@ -141,10 +200,13 @@ Firestore może automatycznie zasugerować potrzebne indeksy podczas pierwszego 
 
 ## 📝 Notatki
 
-- Kalendarz obecnie obsługuje planowanie dla wszystkich zawodników trenera (nie ma jeszcze przypisywania do konkretnego zawodnika)
-- Dziennik jest osobisty dla każdego zawodnika
+- **Każdy zawodnik ma swój osobisty kalendarz treningów** - trener ustawia indywidualnie plany
+- Trener może przeglądać dane każdego zawodnika z zakładki "Widok Zawodnika"
+- Dziennik jest osobisty dla każdego zawodnika, ale trener ma do niego wgląd
 - Statystyki są obliczane na podstawie wpisów w dzienniku
 - Zawody mogą być dodawane zarówno przez zawodnika jak i trenera
+- Szablony treningów są wspólne dla trenera i mogą być użyte dla różnych zawodników
+- Kategorie treningów pomagają w organizacji i filtrowaniu planów treningowych
 
 ## 🐛 Możliwe problemy
 
@@ -160,8 +222,13 @@ Firestore może automatycznie zasugerować potrzebne indeksy podczas pierwszego 
 ## 💡 Dalszy rozwój
 
 Możliwe ulepszenia do dodania w przyszłości:
-- Przypisywanie treningów do konkretnych zawodników w kalendarzu
+- ✅ ~~Przypisywanie treningów do konkretnych zawodników w kalendarzu~~ (ZROBIONE!)
+- ✅ ~~Szablony treningów~~ (ZROBIONE!)
+- ✅ ~~Kategorie treningów~~ (ZROBIONE!)
+- ✅ ~~Widok danych zawodnika dla trenera~~ (ZROBIONE!)
 - Powiadomienia o nadchodzących treningach
 - Export statystyk do PDF
 - Porównanie wyników z celami w zawodach
 - Wykres postępów czasowych w konkretnych dystansach
+- Kopiowanie szablonów treningów
+- Edycja szablonów i automatyczna aktualizacja przyszłych treningów

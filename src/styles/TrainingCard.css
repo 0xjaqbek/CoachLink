@@ -24,10 +24,33 @@
   font-size: 20px;
 }
 
+.badges-container {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.template-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background-color: #e8eaed;
+  color: #5f6368;
+}
+
 .difficulty-badge {
   padding: 4px 12px;
   border-radius: 12px;
   font-size: 12px;
+  font-weight: 500;
+}
+
+.training-category {
+  color: #5f6368;
+  font-size: 14px;
+  margin: 10px 0;
   font-weight: 500;
 }
 

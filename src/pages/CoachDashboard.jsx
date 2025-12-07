@@ -8,6 +8,7 @@ import TrainingForm from '../components/TrainingForm'
 import FeedbackList from '../components/FeedbackList'
 import Messages from '../components/Messages'
 import WeeklyCalendar from '../components/WeeklyCalendar'
+import AthleteView from '../components/AthleteView'
 import '../styles/Dashboard.css'
 
 const CoachDashboard = () => {
@@ -19,6 +20,9 @@ const CoachDashboard = () => {
   const [showForm, setShowForm] = useState(false)
   const [editingTraining, setEditingTraining] = useState(null)
   const [activeTab, setActiveTab] = useState('trainings')
+  const [trainingFilter, setTrainingFilter] = useState('all') // 'all', 'regular', 'templates'
+  const [categoryFilter, setCategoryFilter] = useState('all')
+  const [selectedAthlete, setSelectedAthlete] = useState(null)
 
   useEffect(() => {
     loadData()
@@ -73,27 +77,32 @@ const CoachDashboard = () => {
     }
   }
 
-  const handleCreateTraining = async (trainingData) => {
+  const handleCreateTraining = async (trainingData, saveAsTemplate = false) => {
     try {
-      await addDoc(collection(db, 'trainings'), {
+      const trainingDoc = {
         ...trainingData,
         coachId: currentUser.uid,
         coachName: currentUser.displayName,
+        isTemplate: saveAsTemplate,
         createdAt: new Date().toISOString()
-      })
+      }
+
+      await addDoc(collection(db, 'trainings'), trainingDoc)
 
       setShowForm(false)
       loadData()
+      alert(saveAsTemplate ? 'Trening zapisany jako szablon!' : 'Trening utworzony!')
     } catch (error) {
       console.error('Error creating training:', error)
       alert('Błąd podczas tworzenia treningu')
     }
   }
 
-  const handleUpdateTraining = async (trainingData) => {
+  const handleUpdateTraining = async (trainingData, saveAsTemplate = false) => {
     try {
       await updateDoc(doc(db, 'trainings', editingTraining.id), {
         ...trainingData,
+        isTemplate: saveAsTemplate || editingTraining.isTemplate,
         updatedAt: new Date().toISOString()
       })
 
@@ -178,7 +187,10 @@ const CoachDashboard = () => {
           </button>
           <button
             className={`tab ${activeTab === 'athletes' ? 'active' : ''}`}
-            onClick={() => setActiveTab('athletes')}
+            onClick={() => {
+              setActiveTab('athletes')
+              setSelectedAthlete(null)
+            }}
           >
             Zawodnicy ({athletes.length})
           </button>
@@ -205,6 +217,38 @@ const CoachDashboard = () => {
               </button>
             </div>
 
+            <div className="filters-row">
+              <div className="filter-group">
+                <label>Typ:</label>
+                <select
+                  value={trainingFilter}
+                  onChange={(e) => setTrainingFilter(e.target.value)}
+                  className="input-field"
+                >
+                  <option value="all">Wszystkie</option>
+                  <option value="regular">Tylko treningi</option>
+                  <option value="templates">Tylko szablony</option>
+                </select>
+              </div>
+
+              <div className="filter-group">
+                <label>Kategoria:</label>
+                <select
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  className="input-field"
+                >
+                  <option value="all">Wszystkie</option>
+                  <option value="endurance">Wytrzymałość</option>
+                  <option value="technique">Technika</option>
+                  <option value="sprint">Sprint</option>
+                  <option value="strength">Siła</option>
+                  <option value="recovery">Regeneracja</option>
+                  <option value="mixed">Mieszany</option>
+                </select>
+              </div>
+            </div>
+
             {showForm && (
               <TrainingForm
                 training={editingTraining}
@@ -213,26 +257,38 @@ const CoachDashboard = () => {
                   setShowForm(false)
                   setEditingTraining(null)
                 }}
+                isTemplate={editingTraining?.isTemplate}
               />
             )}
 
-            {trainings.length === 0 ? (
-              <div className="card">
-                <p>Brak treningów. Dodaj pierwszy trening!</p>
-              </div>
-            ) : (
-              <div className="trainings-grid">
-                {trainings.map(training => (
-                  <TrainingCard
-                    key={training.id}
-                    training={training}
-                    onDelete={handleDeleteTraining}
-                    onEdit={handleEditTraining}
-                    role="coach"
-                  />
-                ))}
-              </div>
-            )}
+            {(() => {
+              const filtered = trainings.filter(t => {
+                const typeMatch = trainingFilter === 'all' ||
+                  (trainingFilter === 'regular' && !t.isTemplate) ||
+                  (trainingFilter === 'templates' && t.isTemplate)
+                const categoryMatch = categoryFilter === 'all' || t.category === categoryFilter
+                return typeMatch && categoryMatch
+              })
+
+              return filtered.length === 0 ? (
+                <div className="card">
+                  <p>Brak treningów pasujących do filtrów.</p>
+                </div>
+              ) : (
+                <div className="trainings-grid">
+                  {filtered.map(training => (
+                    <TrainingCard
+                      key={training.id}
+                      training={training}
+                      onDelete={handleDeleteTraining}
+                      onEdit={handleEditTraining}
+                      role="coach"
+                      isTemplate={training.isTemplate}
+                    />
+                  ))}
+                </div>
+              )
+            })()}
           </div>
         )}
 
@@ -249,26 +305,52 @@ const CoachDashboard = () => {
 
         {activeTab === 'athletes' && (
           <div>
-            <h2>Moi Zawodnicy</h2>
-            {athletes.length === 0 ? (
-              <div className="card">
-                <p>Brak przypisanych zawodników. Administrator może przypisać zawodników do Twojego konta.</p>
-              </div>
-            ) : (
-              <div className="athletes-list">
-                {athletes.map(athlete => (
-                  <div key={athlete.id} className="card athlete-card">
-                    <div className="athlete-info">
-                      {athlete.photoURL && (
-                        <img src={athlete.photoURL} alt={athlete.displayName} className="athlete-avatar" />
-                      )}
-                      <div>
-                        <h3>{athlete.displayName}</h3>
-                        <p>{athlete.email}</p>
-                      </div>
-                    </div>
+            {!selectedAthlete ? (
+              <>
+                <h2>Moi Zawodnicy</h2>
+                {athletes.length === 0 ? (
+                  <div className="card">
+                    <p>Brak przypisanych zawodników. Administrator może przypisać zawodników do Twojego konta.</p>
                   </div>
-                ))}
+                ) : (
+                  <div className="athletes-list">
+                    {athletes.map(athlete => (
+                      <div
+                        key={athlete.id}
+                        className="card athlete-card clickable-athlete"
+                        onClick={() => setSelectedAthlete(athlete)}
+                      >
+                        <div className="athlete-info">
+                          {athlete.photoURL && (
+                            <img src={athlete.photoURL} alt={athlete.displayName} className="athlete-avatar" />
+                          )}
+                          <div>
+                            <h3>{athlete.displayName}</h3>
+                            <p>{athlete.email}</p>
+                          </div>
+                        </div>
+                        <div className="athlete-card-arrow">→</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div>
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setSelectedAthlete(null)}
+                  style={{ marginBottom: '20px' }}
+                >
+                  ← Powrót do listy zawodników
+                </button>
+                <AthleteView
+                  athletes={[selectedAthlete]}
+                  coachId={currentUser.uid}
+                  trainings={trainings}
+                  onRefresh={loadData}
+                  preselectedAthleteId={selectedAthlete.id}
+                />
               </div>
             )}
           </div>

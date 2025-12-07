@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import '../styles/Navigation.css'
 
@@ -17,6 +18,9 @@ const Navigation = () => {
       <div className="nav-content">
         <div className="nav-left">
           <h2 className="nav-title">CoachLink</h2>
+          <Link to="/guide" className="nav-link">
+            📖 Jak używać
+          </Link>
         </div>
         <div className="nav-right">
           <div className="user-info">

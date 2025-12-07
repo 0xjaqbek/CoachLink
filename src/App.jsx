@@ -4,6 +4,7 @@ import Login from './pages/Login'
 import AthleteDashboard from './pages/AthleteDashboard'
 import CoachDashboard from './pages/CoachDashboard'
 import AdminDashboard from './pages/AdminDashboard'
+import GuidePanel from './pages/GuidePanel'
 import ProtectedRoute from './components/ProtectedRoute'
 import './styles/App.css'
 
@@ -37,6 +38,15 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/guide"
+            element={
+              <ProtectedRoute allowedRoles={['athlete', 'coach', 'admin']}>
+                <GuidePanel />
               </ProtectedRoute>
             }
           />

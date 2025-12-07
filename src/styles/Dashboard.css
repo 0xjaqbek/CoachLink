@@ -58,6 +58,25 @@
   border-bottom-color: #4285f4;
 }
 
+.filters-row {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-group label {
+  font-weight: 500;
+  color: #202124;
+  font-size: 14px;
+}
+
 .trainings-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -75,13 +94,31 @@
 .athlete-card {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 15px;
+}
+
+.clickable-athlete {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clickable-athlete:hover {
+  transform: translateX(5px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.athlete-card-arrow {
+  font-size: 24px;
+  color: #4285f4;
+  font-weight: bold;
 }
 
 .athlete-info {
   display: flex;
   align-items: center;
   gap: 15px;
+  flex: 1;
 }
 
 .athlete-avatar {

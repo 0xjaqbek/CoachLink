@@ -3,16 +3,18 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { storage } from '../config/firebase'
 import '../styles/TrainingForm.css'
 
-const TrainingForm = ({ training, onSubmit, onCancel }) => {
+const TrainingForm = ({ training, onSubmit, onCancel, isTemplate = false }) => {
   const [formData, setFormData] = useState({
     title: training?.title || '',
     description: training?.description || '',
     exercises: training?.exercises || [{ name: '', sets: '', reps: '', distance: '', rest: '' }],
     duration: training?.duration || '',
     difficulty: training?.difficulty || 'medium',
+    category: training?.category || 'endurance',
     mediaUrls: training?.mediaUrls || []
   })
   const [uploading, setUploading] = useState(false)
+  const [saveAsTemplate, setSaveAsTemplate] = useState(isTemplate)
 
   const handleChange = (e) => {
     setFormData({
@@ -76,7 +78,7 @@ const TrainingForm = ({ training, onSubmit, onCancel }) => {
       alert('Tytuł treningu jest wymagany')
       return
     }
-    onSubmit(formData)
+    onSubmit(formData, saveAsTemplate)
   }
 
   return (
@@ -131,6 +133,36 @@ const TrainingForm = ({ training, onSubmit, onCancel }) => {
               <option value="hard">Trudny</option>
             </select>
           </div>
+
+          <div className="form-group">
+            <label>Kategoria treningu</label>
+            <select
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+              className="input-field"
+            >
+              <option value="endurance">Wytrzymałość</option>
+              <option value="technique">Technika</option>
+              <option value="sprint">Sprint</option>
+              <option value="strength">Siła</option>
+              <option value="recovery">Regeneracja</option>
+              <option value="mixed">Mieszany</option>
+            </select>
+          </div>
+
+          {!isTemplate && (
+            <div className="form-group">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={saveAsTemplate}
+                  onChange={(e) => setSaveAsTemplate(e.target.checked)}
+                />
+                Zapisz jako szablon (będzie dostępny do ponownego użycia)
+              </label>
+            </div>
+          )}
 
           <div className="form-group">
             <label>Ćwiczenia</label>
