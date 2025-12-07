@@ -1,0 +1,145 @@
+.users-table,
+.assignments-table,
+.trainings-table {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.user-row,
+.assignment-row,
+.training-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex: 1;
+}
+
+.user-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+}
+
+.user-info h3 {
+  margin: 0 0 5px 0;
+  font-size: 18px;
+}
+
+.user-info p {
+  margin: 0;
+  color: #5f6368;
+  font-size: 14px;
+}
+
+.user-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.role-select,
+.coach-select {
+  padding: 8px 12px;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 5px;
+}
+
+.badge-athlete {
+  background-color: #e8f0fe;
+  color: #1967d2;
+}
+
+.badge-coach {
+  background-color: #fce8e6;
+  color: #c5221f;
+}
+
+.badge-admin {
+  background-color: #e6f4ea;
+  color: #137333;
+}
+
+.badge-success {
+  background-color: #e6f4ea;
+  color: #137333;
+}
+
+.badge-pending {
+  background-color: #fef7e0;
+  color: #f9ab00;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 14px;
+}
+
+.assignment-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.assignment-info label {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.current-coach {
+  font-size: 14px;
+  color: #5f6368;
+}
+
+.training-row {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.training-row > div {
+  width: 100%;
+}
+
+.training-row h3 {
+  margin: 0 0 10px 0;
+}
+
+.training-row p {
+  margin: 0 0 5px 0;
+  color: #5f6368;
+}
+
+.training-row small {
+  color: #80868b;
+}
+
+@media (max-width: 768px) {
+  .user-row,
+  .assignment-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .user-actions,
+  .assignment-info {
+    width: 100%;
+  }
+}
