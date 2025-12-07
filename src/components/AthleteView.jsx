@@ -11,6 +11,7 @@ const AthleteView = ({ athletes, coachId, trainings, onRefresh, preselectedAthle
   const [athleteCompetitions, setAthleteCompetitions] = useState([])
   const [loading, setLoading] = useState(false)
   const [activeSubTab, setActiveSubTab] = useState('calendar')
+  const [expandedEntries, setExpandedEntries] = useState({})
 
   useEffect(() => {
     if (preselectedAthleteId && athletes.length > 0) {
@@ -46,19 +47,31 @@ const AthleteView = ({ athletes, coachId, trainings, onRefresh, preselectedAthle
       setAthleteDiary(diaryData)
 
       // Calculate stats from diary
-      const completedEntries = diaryData.filter(entry => entry.completed)
+      const completedEntries = diaryData.filter(entry =>
+        (entry.completionStatus || (entry.completed ? 'completed' : 'skipped')) === 'completed'
+      )
+      const partialEntries = diaryData.filter(entry =>
+        (entry.completionStatus || (entry.completed ? 'completed' : 'skipped')) === 'partial'
+      )
+      const missedEntries = diaryData.filter(entry =>
+        (entry.completionStatus || (entry.completed ? 'completed' : 'skipped')) === 'skipped'
+      )
       const totalEntries = diaryData.length
-      const avgFeeling = completedEntries.length > 0
-        ? completedEntries.reduce((sum, entry) => sum + (entry.feeling || 0), 0) / completedEntries.length
+
+      // Calculate averages from completed and partial entries
+      const entriesWithData = [...completedEntries, ...partialEntries]
+      const avgFeeling = entriesWithData.length > 0
+        ? entriesWithData.reduce((sum, entry) => sum + (entry.feeling || 0), 0) / entriesWithData.length
         : 0
-      const avgSleep = completedEntries.filter(e => e.sleepHours).length > 0
-        ? completedEntries.filter(e => e.sleepHours).reduce((sum, entry) => sum + (entry.sleepHours || 0), 0) / completedEntries.filter(e => e.sleepHours).length
+      const avgSleep = entriesWithData.filter(e => e.sleepHours).length > 0
+        ? entriesWithData.filter(e => e.sleepHours).reduce((sum, entry) => sum + (entry.sleepHours || 0), 0) / entriesWithData.filter(e => e.sleepHours).length
         : 0
 
       setAthleteStats({
         totalTrainings: totalEntries,
         completedTrainings: completedEntries.length,
-        missedTrainings: totalEntries - completedEntries.length,
+        partialTrainings: partialEntries.length,
+        missedTrainings: missedEntries.length,
         completionRate: totalEntries > 0 ? Math.round((completedEntries.length / totalEntries) * 100) : 0,
         avgFeeling: avgFeeling.toFixed(1),
         avgSleep: avgSleep.toFixed(1)
@@ -82,6 +95,13 @@ const AthleteView = ({ athletes, coachId, trainings, onRefresh, preselectedAthle
     } finally {
       setLoading(false)
     }
+  }
+
+  const toggleEntryExpansion = (entryId) => {
+    setExpandedEntries(prev => ({
+      ...prev,
+      [entryId]: !prev[entryId]
+    }))
   }
 
   const categoryLabels = {
@@ -187,11 +207,15 @@ const AthleteView = ({ athletes, coachId, trainings, onRefresh, preselectedAthle
                       <div className="stat-label">Wszystkich treningów</div>
                     </div>
                     <div className="stat-card">
-                      <div className="stat-value">{athleteStats.completedTrainings}</div>
-                      <div className="stat-label">Wykonanych</div>
+                      <div className="stat-value stat-completed">{athleteStats.completedTrainings}</div>
+                      <div className="stat-label">Wykonanych w całości</div>
                     </div>
                     <div className="stat-card">
-                      <div className="stat-value">{athleteStats.missedTrainings}</div>
+                      <div className="stat-value stat-partial">{athleteStats.partialTrainings}</div>
+                      <div className="stat-label">Częściowo wykonanych</div>
+                    </div>
+                    <div className="stat-card">
+                      <div className="stat-value stat-missed">{athleteStats.missedTrainings}</div>
                       <div className="stat-label">Opuszczonych</div>
                     </div>
                     <div className="stat-card">
@@ -221,12 +245,19 @@ const AthleteView = ({ athletes, coachId, trainings, onRefresh, preselectedAthle
                     <div className="diary-entries-list">
                       {athleteDiary.map(entry => {
                         const training = trainings.find(t => t.id === entry.trainingId)
+                        const isExpanded = expandedEntries[entry.id]
                         return (
                           <div key={entry.id} className="diary-entry-card">
                             <div className="diary-entry-header">
                               <h4>{training?.title || 'Nieznany trening'}</h4>
-                              <span className={`status-badge ${entry.completed ? 'completed' : 'missed'}`}>
-                                {entry.completed ? 'Wykonany' : 'Opuszczony'}
+                              <span className={`status-badge ${
+                                (entry.completionStatus || (entry.completed ? 'completed' : 'missed')) === 'completed' ? 'completed' :
+                                (entry.completionStatus || (entry.completed ? 'completed' : 'missed')) === 'partial' ? 'partial' :
+                                'missed'
+                              }`}>
+                                {(entry.completionStatus || (entry.completed ? 'completed' : 'missed')) === 'completed' ? 'Wykonany' :
+                                 (entry.completionStatus || (entry.completed ? 'completed' : 'missed')) === 'partial' ? 'Częściowo wykonany' :
+                                 'Opuszczony'}
                               </span>
                             </div>
                             {training?.category && (
@@ -253,6 +284,73 @@ const AthleteView = ({ athletes, coachId, trainings, onRefresh, preselectedAthle
                               <div className="entry-notes">
                                 <strong>Notatki:</strong>
                                 <p>{entry.notes}</p>
+                              </div>
+                            )}
+
+                            <button
+                              className="btn btn-secondary btn-sm"
+                              onClick={() => toggleEntryExpansion(entry.id)}
+                              style={{ marginTop: '15px' }}
+                            >
+                              {isExpanded ? 'Ukryj szczegóły treningu' : 'Zobacz szczegóły treningu'}
+                            </button>
+
+                            {isExpanded && training && (
+                              <div className="training-details-section">
+                                {training.description && (
+                                  <div className="training-description">
+                                    <strong>Opis:</strong>
+                                    <p>{training.description}</p>
+                                  </div>
+                                )}
+
+                                {training.duration && (
+                                  <p className="training-duration">
+                                    <strong>Czas trwania:</strong> {training.duration} min
+                                  </p>
+                                )}
+
+                                {training.category && (
+                                  <p className="training-category">
+                                    <strong>Kategoria:</strong> {categoryLabels[training.category]}
+                                  </p>
+                                )}
+
+                                {training.exercises && training.exercises.length > 0 && (
+                                  <div className="exercises-list">
+                                    <h4>Ćwiczenia:</h4>
+                                    {training.exercises.map((exercise, index) => (
+                                      <div key={index} className="exercise-item">
+                                        <strong>{exercise.name || `Ćwiczenie ${index + 1}`}</strong>
+                                        <div className="exercise-details">
+                                          {exercise.sets && <span>Serie: {exercise.sets}</span>}
+                                          {exercise.reps && <span>Dystans: {exercise.reps}</span>}
+                                          {(exercise.distance || exercise.weight) && <span>Tempo: {exercise.distance || exercise.weight}</span>}
+                                          {exercise.rest && <span>Odpoczynek: {exercise.rest}</span>}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+
+                                {training.mediaUrls && training.mediaUrls.length > 0 && (
+                                  <div className="training-media">
+                                    <h4>Multimedia:</h4>
+                                    <div className="media-gallery">
+                                      {training.mediaUrls.map((url, index) => (
+                                        <div key={index} className="media-item">
+                                          {url.includes('.mp4') || url.includes('.mov') || url.includes('.webm') ? (
+                                            <video src={url} controls width="200" />
+                                          ) : (
+                                            <a href={url} target="_blank" rel="noopener noreferrer">
+                                              <img src={url} alt={`Media ${index + 1}`} width="200" />
+                                            </a>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>

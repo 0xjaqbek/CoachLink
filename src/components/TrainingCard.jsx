@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import '../styles/TrainingCard.css'
 
-const TrainingCard = ({ training, onDelete, onEdit, onAddFeedback, feedbacks = [], role }) => {
+const TrainingCard = ({ training, onDelete, onEdit, onAddFeedback, feedbacks = [], diaryEntries = [], role }) => {
   const [showDetails, setShowDetails] = useState(false)
   const [feedbackText, setFeedbackText] = useState('')
   const [showFeedbackForm, setShowFeedbackForm] = useState(false)
@@ -132,6 +132,48 @@ const TrainingCard = ({ training, onDelete, onEdit, onAddFeedback, feedbacks = [
                       </span>
                     </div>
                   )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {role === 'athlete' && diaryEntries.length > 0 && (
+            <div className="training-diary-entries">
+              <h4>Wpisy z Dziennika:</h4>
+              {diaryEntries.map((entry) => (
+                <div key={entry.id} className="diary-entry-card">
+                  <div className="diary-entry-header">
+                    <span className="diary-entry-date">
+                      {new Date(entry.trainingDate).toLocaleDateString('pl-PL', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                      })}
+                    </span>
+                    {entry.completed && (
+                      <span className="badge-completed">✓ Wykonane</span>
+                    )}
+                  </div>
+                  <div className="diary-entry-details">
+                    <div className="diary-entry-stats">
+                      {entry.feeling && (
+                        <span className={`feeling-badge feeling-${entry.feeling}`}>
+                          Samopoczucie: {entry.feeling}/5
+                        </span>
+                      )}
+                      {entry.sleepHours && (
+                        <span className="sleep-info">
+                          Sen: {entry.sleepHours}h
+                        </span>
+                      )}
+                    </div>
+                    {entry.notes && (
+                      <div className="diary-entry-notes">
+                        <strong>Notatki:</strong>
+                        <p>{entry.notes}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

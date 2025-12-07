@@ -12,11 +12,12 @@ const TrainingDiary = () => {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [selectedScheduled, setSelectedScheduled] = useState(null)
+  const [expandedEntries, setExpandedEntries] = useState({})
   const [formData, setFormData] = useState({
     feeling: 5,
     notes: '',
     sleepHours: '',
-    completed: true
+    completionStatus: 'completed' // completed, partial, skipped
   })
 
   useEffect(() => {
@@ -95,12 +96,13 @@ const TrainingDiary = () => {
         feeling: parseInt(formData.feeling),
         notes: formData.notes.trim(),
         sleepHours: formData.sleepHours ? parseFloat(formData.sleepHours) : null,
-        completed: formData.completed,
+        completionStatus: formData.completionStatus,
+        completed: formData.completionStatus === 'completed', // backwards compatibility
         createdAt: new Date().toISOString()
       })
 
       // Mark scheduled training as completed
-      if (formData.completed) {
+      if (formData.completionStatus === 'completed') {
         await updateDoc(doc(db, 'scheduledTrainings', selectedScheduled.id), {
           completed: true
         })
@@ -108,7 +110,7 @@ const TrainingDiary = () => {
 
       setShowForm(false)
       setSelectedScheduled(null)
-      setFormData({ feeling: 5, notes: '', sleepHours: '', completed: true })
+      setFormData({ feeling: 5, notes: '', sleepHours: '', completionStatus: 'completed' })
       loadData()
     } catch (error) {
       console.error('Error adding diary entry:', error)
@@ -119,6 +121,17 @@ const TrainingDiary = () => {
   const getTrainingTitle = (trainingId) => {
     const training = trainings.find(t => t.id === trainingId)
     return training ? training.title : 'Trening'
+  }
+
+  const getTrainingDetails = (trainingId) => {
+    return trainings.find(t => t.id === trainingId)
+  }
+
+  const toggleEntryExpansion = (entryId) => {
+    setExpandedEntries(prev => ({
+      ...prev,
+      [entryId]: !prev[entryId]
+    }))
   }
 
   const feelingLabels = {
@@ -178,23 +191,31 @@ const TrainingDiary = () => {
               </div>
 
               <div className="form-group">
-                <label>Czy wykonałeś trening?</label>
+                <label>Status wykonania treningu</label>
                 <div className="radio-group">
                   <label>
                     <input
                       type="radio"
-                      checked={formData.completed === true}
-                      onChange={() => setFormData({ ...formData, completed: true })}
+                      checked={formData.completionStatus === 'completed'}
+                      onChange={() => setFormData({ ...formData, completionStatus: 'completed' })}
                     />
-                    Tak
+                    Wykonany w całości
                   </label>
                   <label>
                     <input
                       type="radio"
-                      checked={formData.completed === false}
-                      onChange={() => setFormData({ ...formData, completed: false })}
+                      checked={formData.completionStatus === 'partial'}
+                      onChange={() => setFormData({ ...formData, completionStatus: 'partial' })}
                     />
-                    Nie
+                    Częściowo wykonany
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      checked={formData.completionStatus === 'skipped'}
+                      onChange={() => setFormData({ ...formData, completionStatus: 'skipped' })}
+                    />
+                    Niewykonany
                   </label>
                 </div>
               </div>
@@ -270,46 +291,124 @@ const TrainingDiary = () => {
         </div>
       ) : (
         <div className="diary-entries">
-          {entries.map(entry => (
-            <div key={entry.id} className="diary-entry card">
-              <div className="entry-header">
-                <h3>{getTrainingTitle(entry.trainingId)}</h3>
-                <span className="entry-date">
-                  {new Date(entry.createdAt).toLocaleDateString('pl-PL', {
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric'
-                  })}
-                </span>
-              </div>
+          {entries.map(entry => {
+            const training = getTrainingDetails(entry.trainingId)
+            const isExpanded = expandedEntries[entry.id]
 
-              <div className="entry-stats">
-                <div className="stat">
-                  <span className="stat-label">Status:</span>
-                  <span className={`stat-value ${entry.completed ? 'completed' : 'skipped'}`}>
-                    {entry.completed ? '✓ Wykonane' : '✗ Opuszczone'}
+            return (
+              <div key={entry.id} className="diary-entry card">
+                <div className="entry-header">
+                  <h3>{getTrainingTitle(entry.trainingId)}</h3>
+                  <span className="entry-date">
+                    {new Date(entry.createdAt).toLocaleDateString('pl-PL', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric'
+                    })}
                   </span>
                 </div>
-                <div className="stat">
-                  <span className="stat-label">Samopoczucie:</span>
-                  <span className="stat-value">{feelingLabels[entry.feeling]}</span>
-                </div>
-                {entry.sleepHours && (
+
+                <div className="entry-stats">
                   <div className="stat">
-                    <span className="stat-label">Sen:</span>
-                    <span className="stat-value">{entry.sleepHours}h</span>
+                    <span className="stat-label">Status:</span>
+                    <span className={`stat-value ${
+                      (entry.completionStatus || (entry.completed ? 'completed' : 'skipped')) === 'completed' ? 'completed' :
+                      (entry.completionStatus || (entry.completed ? 'completed' : 'skipped')) === 'partial' ? 'partial' :
+                      'skipped'
+                    }`}>
+                      {(entry.completionStatus || (entry.completed ? 'completed' : 'skipped')) === 'completed' ? '✓ Wykonany w całości' :
+                       (entry.completionStatus || (entry.completed ? 'completed' : 'skipped')) === 'partial' ? '◐ Częściowo wykonany' :
+                       '✗ Niewykonany'}
+                    </span>
+                  </div>
+                  <div className="stat">
+                    <span className="stat-label">Samopoczucie:</span>
+                    <span className="stat-value">{feelingLabels[entry.feeling]}</span>
+                  </div>
+                  {entry.sleepHours && (
+                    <div className="stat">
+                      <span className="stat-label">Sen:</span>
+                      <span className="stat-value">{entry.sleepHours}h</span>
+                    </div>
+                  )}
+                </div>
+
+                {entry.notes && (
+                  <div className="entry-notes">
+                    <strong>Notatki:</strong>
+                    <p>{entry.notes}</p>
+                  </div>
+                )}
+
+                <button
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => toggleEntryExpansion(entry.id)}
+                  style={{ marginTop: '15px' }}
+                >
+                  {isExpanded ? 'Ukryj szczegóły treningu' : 'Zobacz szczegóły treningu'}
+                </button>
+
+                {isExpanded && training && (
+                  <div className="training-details-section">
+                    {training.description && (
+                      <div className="training-description">
+                        <strong>Opis:</strong>
+                        <p>{training.description}</p>
+                      </div>
+                    )}
+
+                    {training.duration && (
+                      <p className="training-duration">
+                        <strong>Czas trwania:</strong> {training.duration} min
+                      </p>
+                    )}
+
+                    {training.category && (
+                      <p className="training-category">
+                        <strong>Kategoria:</strong> {training.category}
+                      </p>
+                    )}
+
+                    {training.exercises && training.exercises.length > 0 && (
+                      <div className="exercises-list">
+                        <h4>Ćwiczenia:</h4>
+                        {training.exercises.map((exercise, index) => (
+                          <div key={index} className="exercise-item">
+                            <strong>{exercise.name || `Ćwiczenie ${index + 1}`}</strong>
+                            <div className="exercise-details">
+                              {exercise.sets && <span>Serie: {exercise.sets}</span>}
+                              {exercise.reps && <span>Dystans: {exercise.reps}</span>}
+                              {(exercise.distance || exercise.weight) && <span>Tempo: {exercise.distance || exercise.weight}</span>}
+                              {exercise.rest && <span>Odpoczynek: {exercise.rest}</span>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {training.mediaUrls && training.mediaUrls.length > 0 && (
+                      <div className="training-media">
+                        <h4>Multimedia:</h4>
+                        <div className="media-gallery">
+                          {training.mediaUrls.map((url, index) => (
+                            <div key={index} className="media-item">
+                              {url.includes('.mp4') || url.includes('.mov') || url.includes('.webm') ? (
+                                <video src={url} controls width="200" />
+                              ) : (
+                                <a href={url} target="_blank" rel="noopener noreferrer">
+                                  <img src={url} alt={`Media ${index + 1}`} width="200" />
+                                </a>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-
-              {entry.notes && (
-                <div className="entry-notes">
-                  <strong>Notatki:</strong>
-                  <p>{entry.notes}</p>
-                </div>
-              )}
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>

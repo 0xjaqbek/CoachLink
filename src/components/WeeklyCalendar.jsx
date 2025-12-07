@@ -12,7 +12,10 @@ const WeeklyCalendar = ({ role, trainings, coachId, onRefresh, athleteId }) => {
   const [selectedTraining, setSelectedTraining] = useState(null)
   const [loading, setLoading] = useState(true)
 
+  console.log('🔍 WeeklyCalendar mounted/updated, athleteId:', athleteId)
+
   useEffect(() => {
+    console.log('🔍 useEffect triggered, athleteId:', athleteId)
     loadScheduledTrainings()
   }, [currentWeek, currentUser, athleteId])
 
@@ -40,6 +43,10 @@ const WeeklyCalendar = ({ role, trainings, coachId, onRefresh, athleteId }) => {
         ...doc.data()
       }))
 
+      console.log('🔍 DEBUG: Loaded scheduled trainings:', scheduledData)
+      console.log('🔍 DEBUG: Filter field:', filterField, 'Filter value:', filterValue)
+      console.log('🔍 DEBUG: Week start:', weekStart.toISOString(), 'Week end:', weekEnd.toISOString())
+
       setScheduledTrainings(scheduledData)
     } catch (error) {
       console.error('Error loading scheduled trainings:', error)
@@ -50,9 +57,11 @@ const WeeklyCalendar = ({ role, trainings, coachId, onRefresh, athleteId }) => {
 
   const getWeekStart = (date) => {
     const d = new Date(date)
+    d.setHours(0, 0, 0, 0)
     const day = d.getDay()
     const diff = d.getDate() - day + (day === 0 ? -6 : 1)
-    const monday = new Date(d.setDate(diff))
+    const monday = new Date(d)
+    monday.setDate(diff)
     monday.setHours(0, 0, 0, 0)
     return monday
   }
@@ -73,6 +82,7 @@ const WeeklyCalendar = ({ role, trainings, coachId, onRefresh, athleteId }) => {
       day.setDate(day.getDate() + i)
       days.push(day)
     }
+    console.log('🔍 Days of week:', days.map(d => d.toISOString().split('T')[0]))
     return days
   }
 
@@ -122,11 +132,27 @@ const WeeklyCalendar = ({ role, trainings, coachId, onRefresh, athleteId }) => {
   }
 
   const getTrainingForDay = (day) => {
-    const dayStr = day.toISOString().split('T')[0]
-    return scheduledTrainings.filter(st => {
-      const scheduledDay = new Date(st.scheduledDate).toISOString().split('T')[0]
-      return scheduledDay === dayStr
+    // Użyj lokalnej daty zamiast UTC
+    const year = day.getFullYear()
+    const month = String(day.getMonth() + 1).padStart(2, '0')
+    const dayNum = String(day.getDate()).padStart(2, '0')
+    const dayStr = `${year}-${month}-${dayNum}`
+
+    const filtered = scheduledTrainings.filter(st => {
+      const scheduledDate = new Date(st.scheduledDate)
+      const schedYear = scheduledDate.getUTCFullYear()
+      const schedMonth = String(scheduledDate.getUTCMonth() + 1).padStart(2, '0')
+      const schedDay = String(scheduledDate.getUTCDate()).padStart(2, '0')
+      const scheduledDay = `${schedYear}-${schedMonth}-${schedDay}`
+
+      const match = scheduledDay === dayStr
+      if (match) {
+        console.log('🔍 Training match found for day:', dayStr, 'Training:', st)
+      }
+      return match
     })
+    console.log('🔍 getTrainingForDay:', dayStr, 'Found:', filtered.length, 'trainings')
+    return filtered
   }
 
   const previousWeek = () => {

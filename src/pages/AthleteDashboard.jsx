@@ -15,6 +15,7 @@ const AthleteDashboard = () => {
   const { currentUser } = useAuth()
   const [trainings, setTrainings] = useState([])
   const [feedbacks, setFeedbacks] = useState([])
+  const [diaryEntries, setDiaryEntries] = useState([])
   const [loading, setLoading] = useState(true)
   const [coachName, setCoachName] = useState('')
   const [coachId, setCoachId] = useState(null)
@@ -70,6 +71,19 @@ const AthleteDashboard = () => {
       }))
 
       setFeedbacks(feedbacksData)
+
+      // Get diary entries for this athlete
+      const diaryQuery = query(
+        collection(db, 'trainingDiaryEntries'),
+        where('athleteId', '==', currentUser.uid)
+      )
+      const diarySnapshot = await getDocs(diaryQuery)
+      const diaryData = diarySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }))
+
+      setDiaryEntries(diaryData)
     } catch (error) {
       console.error('Error loading trainings:', error)
     } finally {
@@ -175,6 +189,7 @@ const AthleteDashboard = () => {
                     training={training}
                     onAddFeedback={handleAddFeedback}
                     feedbacks={feedbacks.filter(f => f.trainingId === training.id)}
+                    diaryEntries={diaryEntries.filter(d => d.trainingId === training.id)}
                     role="athlete"
                   />
                 ))}

@@ -98,6 +98,18 @@
   margin-bottom: 8px;
 }
 
+.stat-value.stat-completed {
+  color: #34a853;
+}
+
+.stat-value.stat-partial {
+  color: #f9ab00;
+}
+
+.stat-value.stat-missed {
+  color: #ea4335;
+}
+
 .stat-label {
   font-size: 14px;
   color: #5f6368;
@@ -144,6 +156,11 @@
 .status-badge.completed {
   background-color: #e6f4ea;
   color: #137333;
+}
+
+.status-badge.partial {
+  background-color: #fef7e0;
+  color: #f9ab00;
 }
 
 .status-badge.missed {
@@ -200,6 +217,103 @@
   margin: 0;
   color: #5f6368;
   line-height: 1.5;
+}
+
+/* Training details section in diary */
+.training-details-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 4px;
+}
+
+.training-details-section .training-description {
+  margin-bottom: 15px;
+}
+
+.training-details-section .training-description strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #202124;
+}
+
+.training-details-section .training-description p {
+  margin: 0;
+  color: #5f6368;
+  line-height: 1.5;
+}
+
+.training-details-section .training-duration,
+.training-details-section .training-category {
+  margin: 10px 0;
+  color: #5f6368;
+}
+
+.training-details-section .training-duration strong,
+.training-details-section .training-category strong {
+  color: #202124;
+}
+
+.training-details-section .exercises-list {
+  margin-top: 20px;
+}
+
+.training-details-section .exercises-list h4 {
+  margin: 0 0 15px 0;
+  font-size: 16px;
+  color: #202124;
+}
+
+.training-details-section .exercise-item {
+  background: white;
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  border: 1px solid #e0e0e0;
+}
+
+.training-details-section .exercise-item strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #202124;
+}
+
+.training-details-section .exercise-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  font-size: 14px;
+  color: #5f6368;
+}
+
+.training-details-section .training-media {
+  margin-top: 20px;
+}
+
+.training-details-section .training-media h4 {
+  margin: 0 0 15px 0;
+  font-size: 16px;
+  color: #202124;
+}
+
+.training-details-section .media-gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.training-details-section .media-gallery .media-item {
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid #e0e0e0;
+}
+
+.training-details-section .media-gallery img,
+.training-details-section .media-gallery video {
+  display: block;
+  border-radius: 4px;
 }
 
 /* Competitions section */

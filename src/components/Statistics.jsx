@@ -9,6 +9,7 @@ const Statistics = () => {
   const [stats, setStats] = useState({
     totalTrainings: 0,
     completedTrainings: 0,
+    partialTrainings: 0,
     skippedTrainings: 0,
     averageFeeling: 0,
     averageSleep: 0,
@@ -49,8 +50,15 @@ const Statistics = () => {
       )
 
       // Calculate statistics
-      const completed = filteredEntries.filter(e => e.completed).length
-      const skipped = filteredEntries.filter(e => !e.completed).length
+      const completed = filteredEntries.filter(e =>
+        (e.completionStatus || (e.completed ? 'completed' : 'skipped')) === 'completed'
+      ).length
+      const partial = filteredEntries.filter(e =>
+        (e.completionStatus || (e.completed ? 'completed' : 'skipped')) === 'partial'
+      ).length
+      const skipped = filteredEntries.filter(e =>
+        (e.completionStatus || (e.completed ? 'completed' : 'skipped')) === 'skipped'
+      ).length
       const totalTrainings = filteredEntries.length
 
       const feelingsSum = filteredEntries.reduce((sum, e) => sum + (e.feeling || 0), 0)
@@ -65,10 +73,13 @@ const Statistics = () => {
       filteredEntries.forEach(entry => {
         const day = new Date(entry.createdAt).toISOString().split('T')[0]
         if (!dayGroups[day]) {
-          dayGroups[day] = { completed: 0, skipped: 0 }
+          dayGroups[day] = { completed: 0, partial: 0, skipped: 0 }
         }
-        if (entry.completed) {
+        const status = entry.completionStatus || (entry.completed ? 'completed' : 'skipped')
+        if (status === 'completed') {
           dayGroups[day].completed++
+        } else if (status === 'partial') {
+          dayGroups[day].partial++
         } else {
           dayGroups[day].skipped++
         }
@@ -80,12 +91,14 @@ const Statistics = () => {
         .map(day => ({
           date: new Date(day).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' }),
           completed: dayGroups[day].completed,
+          partial: dayGroups[day].partial,
           skipped: dayGroups[day].skipped
         }))
 
       setStats({
         totalTrainings,
         completedTrainings: completed,
+        partialTrainings: partial,
         skippedTrainings: skipped,
         averageFeeling,
         averageSleep,
@@ -148,7 +161,15 @@ const Statistics = () => {
           <div className="stat-icon">✅</div>
           <div className="stat-content">
             <div className="stat-value">{stats.completedTrainings}</div>
-            <div className="stat-label">Wykonane</div>
+            <div className="stat-label">Wykonane w całości</div>
+          </div>
+        </div>
+
+        <div className="stat-card card partial">
+          <div className="stat-icon">◐</div>
+          <div className="stat-content">
+            <div className="stat-value">{stats.partialTrainings}</div>
+            <div className="stat-label">Częściowo wykonane</div>
           </div>
         </div>
 
@@ -189,23 +210,44 @@ const Statistics = () => {
       {stats.weeklyData.length > 0 && (
         <div className="chart-container card">
           <h3>Aktywność treningowa</h3>
+          <div className="chart-legend">
+            <span className="legend-item"><span className="legend-color completed"></span> Wykonane</span>
+            <span className="legend-item"><span className="legend-color partial"></span> Częściowo</span>
+            <span className="legend-item"><span className="legend-color skipped"></span> Opuszczone</span>
+          </div>
           <div className="simple-chart">
             {stats.weeklyData.map((day, index) => {
-              const total = day.completed + day.skipped
+              const total = day.completed + day.partial + day.skipped
               const maxHeight = 100
-              const height = total > 0 ? (total / Math.max(...stats.weeklyData.map(d => d.completed + d.skipped))) * maxHeight : 0
+              const maxTotal = Math.max(...stats.weeklyData.map(d => d.completed + d.partial + d.skipped))
+              const height = total > 0 ? (total / maxTotal) * maxHeight : 0
 
               return (
                 <div key={index} className="chart-bar-wrapper">
                   <div className="chart-bar-container" style={{ height: `${maxHeight}px` }}>
                     <div
-                      className="chart-bar"
-                      style={{
-                        height: `${height}px`,
-                        background: day.completed > 0 ? '#34a853' : '#ea4335'
-                      }}
-                      title={`${day.completed} wykonane, ${day.skipped} opuszczone`}
+                      className="chart-bar-stacked"
+                      style={{ height: `${height}px` }}
+                      title={`Wykonane: ${day.completed}, Częściowo: ${day.partial}, Opuszczone: ${day.skipped}`}
                     >
+                      {day.completed > 0 && (
+                        <div
+                          className="bar-segment completed"
+                          style={{ height: `${(day.completed / total) * 100}%` }}
+                        ></div>
+                      )}
+                      {day.partial > 0 && (
+                        <div
+                          className="bar-segment partial"
+                          style={{ height: `${(day.partial / total) * 100}%` }}
+                        ></div>
+                      )}
+                      {day.skipped > 0 && (
+                        <div
+                          className="bar-segment skipped"
+                          style={{ height: `${(day.skipped / total) * 100}%` }}
+                        ></div>
+                      )}
                       <span className="bar-value">{total}</span>
                     </div>
                   </div>
